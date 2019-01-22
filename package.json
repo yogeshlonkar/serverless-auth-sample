@@ -1,0 +1,19 @@
+{
+  "name": "tut3servless",
+  "version": "1.0.0",
+  "description": "tutorial 3 serverless",
+  "main": "index.js",
+  "scripts": {
+    "test": "IS_OFFLINE=true NODE_PATH=. jest"
+  },
+  "author": "lonkar.yogeshr@gmail.com",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^23.6.0",
+    "serverless-dynamodb-local": "^0.2.30",
+    "serverless-offline": "^4.1.4"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.392.0"
+  }
+}
