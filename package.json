@@ -1,7 +1,7 @@
 {
-  "name": "tut3servless",
+  "name": "serverless-authorization-sample",
   "version": "1.0.0",
-  "description": "tutorial 3 serverless",
+  "description": "Sample serverless authorization and authentication application using nodejs and aws lambda, dynamodb, api-gatwat",
   "main": "index.js",
   "scripts": {
     "test": "IS_OFFLINE=true NODE_PATH=. jest"
@@ -14,6 +14,7 @@
     "serverless-offline": "^4.1.4"
   },
   "dependencies": {
-    "aws-sdk": "^2.392.0"
+    "aws-sdk": "^2.392.0",
+    "jsonwebtoken": "^8.4.0"
   }
 }

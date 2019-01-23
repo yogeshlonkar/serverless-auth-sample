@@ -1,6 +1,25 @@
 {
-    "Table": {
-        "TableName": "Test",
+    "MetadataTable": {
+        "TableName": "sample-streaming-service-dev-metadata",
+        "KeySchema": [
+            {
+                "AttributeName": "id",
+                "KeyType": "HASH"
+            }
+        ],
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "id",
+                "AttributeType": "S"
+            }
+        ],
+        "ProvisionedThroughput": {
+            "ReadCapacityUnits": 1,
+            "WriteCapacityUnits": 1
+        }
+    },
+    "UserTable": {
+        "TableName": "sample-streaming-service-dev-user",
         "KeySchema": [
             {
                 "AttributeName": "id",

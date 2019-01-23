@@ -24,7 +24,7 @@ exports.createMetadata = async (event, context) => {
         }
         const { text, checked } = JSON.parse(event.body) || {};
         const params = {
-            TableName: process.env.DYNAMODB_TABLE,
+            TableName: process.env.DYNAMODB_METADATA_TABLE,
             Item: {
                 id,
                 text,
@@ -67,7 +67,7 @@ exports.getMetadata = async (event, context) => {
             return generateResult(400, { message: 'metadata id is required' });
         }
         const params = {
-            TableName: process.env.DYNAMODB_TABLE,
+            TableName: process.env.DYNAMODB_METADATA_TABLE,
             Key: {
                 id
             }

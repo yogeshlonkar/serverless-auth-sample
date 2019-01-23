@@ -21,7 +21,11 @@ provider:
   stage: dev
   runtime: nodejs8.10
   environment:
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_METADATA_TABLE: ${self:service}-${opt:stage, self:provider.stage}-metadata
+    DYNAMODB_USER_TABLE: ${self:service}-${opt:stage, self:provider.stage}-user
+    AUTH0_CLIENT_ID: ${file(./secrets.json):AUTH0_CLIENT_ID}
+    AUTH0_CLIENT_PRIVATE_KEY: ${file(./private.key)}
+    AUTH0_CLIENT_PUBLIC_KEY: ${file(./public.key)}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -31,7 +35,16 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_METADATA_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_USER_TABLE}"
 
 package:
   individually: true
@@ -43,6 +56,16 @@ package:
     - event.json
 
 functions:
+  auth:
+    handler: src/handlers/authHandler.auth
+    cors: true
+  login:
+    handler: src/handlers/authHandler.login
+    events:
+      - http:
+          path: /login
+          method: post
+          cors: true
   create-metada:
     handler: src/handlers/metadataHandler.createMetadata
     events:
@@ -50,6 +73,7 @@ functions:
           path: /metadata/{id}
           method: post
           cors: true
+          authorizer: auth
           request:
             parameters:
               paths:
@@ -60,6 +84,7 @@ functions:
       - http:
           path: /metadata/{id}
           method: get
+          authorizer: auth
           cors: true
           request:
             parameters:
@@ -68,7 +93,27 @@ functions:
 
 resources:
   Resources:
-    TodosDynamoDbTable:
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    AuthFailureGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    MatadataDynamoDbTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
@@ -83,5 +128,21 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: ${self:provider.environment.DYNAMODB_METADATA_TABLE}
+    UaserDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_USER_TABLE}
 
