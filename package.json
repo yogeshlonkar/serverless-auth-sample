@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.392.0",
-    "jsonwebtoken": "^8.4.0"
+    "jsonwebtoken": "^8.4.0",
+    "tar": ">=4.4.2"
   }
 }
